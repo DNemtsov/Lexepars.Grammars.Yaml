@@ -5,14 +5,14 @@
     <Description>YAML grammar based on Lexepars parser lib.</Description>
     <Copyright>Copyright © 2018-2019</Copyright>
     <AssemblyTitle>Lexepars.Grammars.Yaml</AssemblyTitle>
-    <VersionPrefix>0.0.6</VersionPrefix>
+    <VersionPrefix>0.0.7</VersionPrefix>
     <Authors>Dmitrii Nemtsov</Authors>
     <AssemblyName>Lexepars.Grammars.Yaml</AssemblyName>
     <PackageId>Lexepars.Grammars.Yaml</PackageId>
-    <PackageProjectUrl>https://github.com/dnemtsov/Lexepars</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/dnemtsov/Lexepars.Grammars.Yaml</PackageProjectUrl>
     <PackageLicense>https://github.com/dnemtsov/Lexepars/blob/master/LICENSE.txt</PackageLicense>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/dnemtsov/Lexepars</RepositoryUrl>
+    <RepositoryUrl>https://github.com/dnemtsov/Lexepars.Grammars.Yaml</RepositoryUrl>
     <PackageTags>yaml, parsing, lexer, tokenization, grammar, validation</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

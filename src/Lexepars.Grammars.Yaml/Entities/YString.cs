@@ -144,5 +144,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml.Entities
         }
 
         public override int GetHashCode() => Value.GetHashCode();
+
+        public override string ToString() => $"YString: {Value}";
     }
 }

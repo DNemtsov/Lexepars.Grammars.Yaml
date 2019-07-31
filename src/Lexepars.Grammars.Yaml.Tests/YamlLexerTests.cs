@@ -108,5 +108,23 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             YamlTestCases.BlockFoldedScalarStrip.TestLexer();
         }
+
+        [Fact]
+        public void LexesBlockMappingInline()
+        {
+            YamlTestCases.BlockMappingInline.TestLexer();
+        }
+
+        [Fact]
+        public void LexesBlockMappingInlineAnchored()
+        {
+            YamlTestCases.BlockMappingInlineAnchored.TestLexer();
+        }
+
+        [Fact]
+        public void LexesBlockMappingInlineAnchoredWithAlias()
+        {
+            YamlTestCases.BlockMappingInlineAnchoredWithAlias.TestLexer();
+        }
     }
 }

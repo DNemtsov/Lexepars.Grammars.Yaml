@@ -37,6 +37,8 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 SingleQuotedString,
                 BlockScalarHeader,
                 Comment,
+                Anchor,
+                Alias,
                 UnquotedString)
         { }
 
@@ -93,6 +95,10 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         public static readonly MatchableTokenKind Comment = new PatternTokenKind("comment", @"\#[^\r\n]*");
 
         public static readonly MatchableTokenKind BlockScalarLine = new PatternTokenKind("block scalar line", @"[^\r\n]*(?:\r\n?|\n)?");
+
+        public static readonly MatchableTokenKind Anchor = new PatternTokenKind("anchor", @"&[^\r\n\[\]\{\},\s]+");
+
+        public static readonly MatchableTokenKind Alias = new PatternTokenKind("alias", @"\*[^\r\n\[\]\{\},\s]+");
 
         protected override sealed YamlTokenizationContext CreateTokenizationContext(LinedInputText text, IEnumerable<FlowExtent> flowExtents)
         {

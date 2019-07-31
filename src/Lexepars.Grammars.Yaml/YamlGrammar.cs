@@ -25,6 +25,8 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         static readonly GrammarRule<YNode> FlowNode = new GrammarRule<YNode>();
         static readonly GrammarRule<YNode> BlockNode = new GrammarRule<YNode>();
 
+        static readonly GrammarRule<YAlias> Alias = new GrammarRule<YAlias>();
+
         static readonly GrammarRule<YNode> Node = new GrammarRule<YNode>();
 
         static readonly GrammarRule<YNode> Yaml = new GrammarRule<YNode>();
@@ -46,6 +48,8 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
             AnyString.Rule = Choice(QuotedString, UnquotedString);
 
+            Alias.Rule = YamlLexer.Alias.BindLexeme(YAlias.FromString);
+
             BlockScalarText.Rule =
                 from header in YamlLexer.BlockScalarHeader.Lexeme()
                 from lines in Between(
@@ -63,7 +67,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 .Bind(YSequence.FromList);
 
             BlockMapping.Rule =
-                OneOrMore(NameValuePair(AnyString, YamlLexer.MappingSeparator.Kind(), Node))
+                OneOrMore(NameValuePair(AnyString, YamlLexer.MappingSeparator.Kind(), Choice(Node, Alias)))
                 .Bind(YMapping.FromDictionary);
 
             FlowMapping.Rule =
@@ -73,23 +77,27 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                         NameValuePair(
                             AnyString,
                             YamlLexer.MappingSeparator.Kind(),
-                            FlowNode),
+                            Choice(FlowNode, Alias)),
                         YamlLexer.FlowItemSeparator.Kind()),
                     YamlLexer.FlowMappingEnd.Kind())
                 .Bind(YMapping.FromDictionary);
 
-            FlowNode.Rule = Choice<YNode>(
-                FlowSequence,
-                FlowMapping,
-                QuotedString,
-                Number,
-                Boolean,
-                Null,
-                UnquotedString);
+            FlowNode.Rule =
+                from anchor in Optional(YamlLexer.Anchor.Lexeme())
+                from node in Choice<YNode>(
+                    FlowSequence,
+                    FlowMapping,
+                    QuotedString,
+                    Number,
+                    Boolean,
+                    Null,
+                    UnquotedString)
+                select YNode.AttachAnchor(node, anchor);
 
             BlockNode.Rule = Between(
                 ScopeTokenKind.ScopeBegin.Kind(),
-                Choice<YNode>(
+                from anchor in Optional(YamlLexer.Anchor.Lexeme())
+                from node in Choice<YNode>(
                     BlockSequence,
                     BlockMapping,
                     QuotedString,
@@ -97,7 +105,8 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                     Boolean,
                     Null,
                     BlockScalarText,
-                    UnquotedString),
+                    UnquotedString)
+                select YNode.AttachAnchor(node, anchor),
                 ScopeTokenKind.ScopeEnd.Kind());
 
             Node.Rule = Choice(FlowNode, BlockNode);
