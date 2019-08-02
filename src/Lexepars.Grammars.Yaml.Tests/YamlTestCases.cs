@@ -5,7 +5,6 @@ using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Lexepars.Tests.IntegrationTests.Yaml
 {
@@ -184,8 +183,6 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 CreateToken(10, 40, "false",  YamlLexer.False),
                 CreateToken(11, 21, "}",  YamlLexer.FlowMappingEnd),
                 CreateToken(12, 17, "}",  YamlLexer.FlowMappingEnd),
-                //CreateToken(, , "",  YamlLexer.),
-                //CreateToken(, , "",  YamlLexer.),
             },
             parsed =>
             {
@@ -290,7 +287,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
                 CreateToken(1, 1, "a", YamlLexer.UnquotedString),
                 CreateToken(1, 2, ":", YamlLexer.MappingSeparator),
-                CreateToken(1, 4, "a", YamlLexer.UnquotedString),
+                CreateToken(1, 4, "b", YamlLexer.UnquotedString),
                 CreateToken(1, 5, null,  ScopeTokenKind.ScopeEnd),
             },
             parsed =>
@@ -299,6 +296,46 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
                 mapping["a"].ShouldBe(new YString("b"));
             });
+
+        public static YamlTestCase BlockMappingInlineAnchored = new YamlTestCase(
+            "&a123 a: b",
+            new[]
+            {
+                CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
+                CreateToken(1, 1, "&a123", YamlLexer.Anchor),
+                CreateToken(1, 7, "a", YamlLexer.UnquotedString),
+                CreateToken(1, 8, ":", YamlLexer.MappingSeparator),
+                CreateToken(1, 10, "b", YamlLexer.UnquotedString),
+                CreateToken(1, 11, null,  ScopeTokenKind.ScopeEnd),
+            },
+            parsed =>
+            {
+                var mapping = parsed.ShouldBeOfType<YMapping>();
+
+                mapping["a"].ShouldBe(new YString("b"));
+
+                mapping.Anchor.ShouldBe("a123");
+            });
+
+        public static YamlTestCase BlockMappingInlineAnchoredWithAlias = new YamlTestCase(
+           "&a123 a: *alias",
+           new[]
+           {
+                CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
+                CreateToken(1, 1, "&a123", YamlLexer.Anchor),
+                CreateToken(1, 7, "a", YamlLexer.UnquotedString),
+                CreateToken(1, 8, ":", YamlLexer.MappingSeparator),
+                CreateToken(1, 10, "*alias", YamlLexer.Alias),
+                CreateToken(1, 16, null,  ScopeTokenKind.ScopeEnd),
+           },
+           parsed =>
+           {
+               var mapping = parsed.ShouldBeOfType<YMapping>();
+
+               mapping["a"].ShouldBe(new YAlias("alias"));
+
+               mapping.Anchor.ShouldBe("a123");
+           });
 
         private static YamlTestCase SingleNumberToken(string input)
             => YamlTestCase.YieldsSingleTokenInScope(input, YamlLexer.Number);
@@ -365,6 +402,16 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                     CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
                     CreateToken(1, 1, "some    ", YamlLexer.UnquotedString),
                     CreateToken(1, 10, null,  ScopeTokenKind.ScopeEnd),
+                },
+                null),
+             new YamlTestCase(
+                "&sdf some    \n",
+                new[]
+                {
+                    CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
+                    CreateToken(1, 1, "&sdf", YamlLexer.Anchor),
+                    CreateToken(1, 6, "some    ", YamlLexer.UnquotedString),
+                    CreateToken(1, 15, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
         };
@@ -440,7 +487,6 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                     CreateToken(1, 15, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
-
             new YamlTestCase(
                 "|45+#",
                 new[]
@@ -451,6 +497,18 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                     CreateToken(1, 6, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
+            new YamlTestCase(
+                "&anchor |45+#",
+                new[]
+                {
+                    CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
+                    CreateToken(1, 1, "&anchor", YamlLexer.Anchor),
+                    CreateToken(1, 9, "|45+", YamlLexer.BlockScalarHeader),
+                    CreateToken(1, 13, "#", YamlLexer.Comment),
+                    CreateToken(1, 14, null,  ScopeTokenKind.ScopeEnd),
+                },
+                null),
+
         };
 
         public static YamlTestCase BlockLiteralScalarKeep = new YamlTestCase(
