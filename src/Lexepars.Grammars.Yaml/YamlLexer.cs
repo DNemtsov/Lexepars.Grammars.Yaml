@@ -36,7 +36,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 DoubleQuotedString,
                 SingleQuotedString,
                 BlockScalarHeader,
-                Comment,
+                Skip(Comment),
                 Anchor,
                 Alias,
                 UnquotedString)

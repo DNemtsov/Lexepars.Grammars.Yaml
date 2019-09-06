@@ -483,7 +483,6 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 {
                     CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
                     CreateToken(1, 1, ">32", YamlLexer.BlockScalarHeader),
-                    CreateToken(1, 6, "# Comment", YamlLexer.Comment),
                     CreateToken(1, 15, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
@@ -493,7 +492,6 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 {
                     CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
                     CreateToken(1, 1, "|45+", YamlLexer.BlockScalarHeader),
-                    CreateToken(1, 5, "#", YamlLexer.Comment),
                     CreateToken(1, 6, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
@@ -504,7 +502,6 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                     CreateToken(1, 1, null,  ScopeTokenKind.ScopeBegin),
                     CreateToken(1, 1, "&anchor", YamlLexer.Anchor),
                     CreateToken(1, 9, "|45+", YamlLexer.BlockScalarHeader),
-                    CreateToken(1, 13, "#", YamlLexer.Comment),
                     CreateToken(1, 14, null,  ScopeTokenKind.ScopeEnd),
                 },
                 null),
