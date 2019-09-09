@@ -1,4 +1,4 @@
-namespace Lexepars.Tests.IntegrationTests.Yaml
+namespace Lexepars.Grammars.Yaml
 {
     using Lexepars.OffsideRule;
     using System;
@@ -13,7 +13,9 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 {
                     Indent.LexemeLength(Space),
                     Indent.LexemeLength(BlockSequenceItemMarker, ScopePerToken.EmitBefore),
-                    Indent.Ignore(NewLine)
+                    Indent.Neutral(NewLine),
+                    Indent.Neutral(DirectivesEndMarker),
+                    YamlTokenizationContext.ResetDocumentIndent,
                 },
                 new[]
                 {
@@ -40,7 +42,8 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 Anchor,
                 Alias,
                 UnquotedString)
-        { }
+        {
+        }
 
         public static readonly MatchableTokenKind Space = new OperatorTokenKind(" ");
 
@@ -100,15 +103,36 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
         public static readonly MatchableTokenKind Alias = new PatternTokenKind("alias", @"\*[^\r\n\[\]\{\},\s]+");
 
+        public static readonly MatchableTokenKind VersionDirective = new PatternTokenKind("version directive", @"%YAML\s\d\.\d+");
+
+        public static readonly MatchableTokenKind TagDirective = new PatternTokenKind("tag directive", @"%TAG\s((?:!\w*!)|!)\s!?\w.*");
+
+        public static readonly MatchableTokenKind DirectivesEndMarker = new OperatorTokenKind("---");
+
+        public static readonly MatchableTokenKind DocumentEndMarker = new OperatorTokenKind("...");
+
         protected override sealed YamlTokenizationContext CreateTokenizationContext(LinedInputText text, IEnumerable<FlowExtent> flowExtents)
         {
             return new YamlTokenizationContext(text, flowExtents);
         }
 
+        protected static readonly MatchableTokenKind[] DocumentDirectivePreambleTokens = new[]
+        {
+            TagDirective, Comment, VersionDirective, NewLine
+        };
+
         protected override sealed Token GetToken(ILinedInputText text, YamlTokenizationContext context)
         {
             if (context == null)
                 throw new ArgumentNullException(nameof(context));
+
+            if (context.DocumentState == DocumentState.DirectivePreamble)
+            {
+                var preambleToken = GetToken(text, DocumentDirectivePreambleTokens);
+
+                if (preambleToken != null)
+                    return preambleToken;
+            }
 
             if (context.BlockScalarState != BlockScalarState.Within)
                 return base.GetToken(text, context);

@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml.Entities
+namespace Lexepars.Grammars.Yaml.Entities
 {
     public class YNumber : YScalar
     {

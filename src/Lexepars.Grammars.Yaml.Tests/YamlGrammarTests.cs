@@ -1,28 +1,28 @@
 ﻿using Lexepars.TestFixtures;
-using Lexepars.Tests.IntegrationTests.Yaml.Entities;
+using Lexepars.Grammars.Yaml.Entities;
 using Shouldly;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml
+namespace Lexepars.Grammars.Yaml
 {
-    public class YamlGrammarTests
+    public class DocumentGrammarTests
     {
         static IEnumerable<Token> Tokenize(string input) => new YamlLexer().Tokenize(new StringReader(input));
-        static readonly YamlGrammar Yaml = new YamlGrammar();
+        static readonly DocumentGrammar Yaml = new DocumentGrammar();
 
         [Fact]
         public void ParsesEmptyFlowMapping()
         {
-            YamlTestCases.EmptyFlowMapping.TestParser();
+            DocumentTestCases.EmptyFlowMapping.TestParser();
         }
 
         [Fact]
         public void ParsesEmptyFlowSequence()
         {
-            YamlTestCases.EmptyFlowSequence.TestParser();
+            DocumentTestCases.EmptyFlowSequence.TestParser();
         }
 
         [Fact]
@@ -30,15 +30,25 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             var tokens = Tokenize("true");
 
-            Yaml.Parses(tokens).WithValue(YBoolean.True);
+            var doc = Yaml.Parses(tokens).ParsedValue;
+
+            doc.Directives.ShouldBeEmpty();
+
+            doc.Body.ShouldBe(YBoolean.True);
         }
+
+
 
         [Fact]
         public void ParsesFalseLexeme()
         {
             var tokens = Tokenize("false").ToArray();
 
-            Yaml.Parses(tokens).WithValue(YBoolean.False);
+            var doc = Yaml.Parses(tokens).ParsedValue;
+
+            doc.Directives.ShouldBeEmpty();
+
+            doc.Body.ShouldBe(YBoolean.False);
         }
 
         [Fact]
@@ -46,7 +56,11 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             var tokens = Tokenize("null");
 
-            Yaml.Parses(tokens).WithValue(YNull.Null);
+            var doc = Yaml.Parses(tokens).ParsedValue;
+
+            doc.Directives.ShouldBeEmpty();
+
+            doc.Body.ShouldBe(YNull.Null);
         }
 
         [Fact]
@@ -54,7 +68,11 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             var tokens = Tokenize("10.123E-11");
 
-            Yaml.Parses(tokens).WithValue(new YNumber(10.123E-11m));
+            var doc = Yaml.Parses(tokens).ParsedValue;
+
+            doc.Directives.ShouldBeEmpty();
+
+            doc.Body.ShouldBe(new YNumber(10.123E-11m));
         }
 
         [Fact]
@@ -62,7 +80,11 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             var filled = Tokenize("[0, 1, .2]");
 
-            var sequence = Yaml.Parses(filled).ParsedValue.ShouldBeOfType<YSequence>();
+            var doc = Yaml.Parses(filled).ParsedValue;
+
+            doc.Directives.ShouldBeEmpty();
+
+            var sequence = doc.Body.ShouldBeOfType<YSequence>();
 
             sequence.ShouldBe(new[] { new YNumber(0m), new YNumber(1m), new YNumber(.2m) });
         }
@@ -72,108 +94,150 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             var empty = Tokenize("{}");
 
-            Yaml.Parses(empty).WithValue(value => ((YMapping)value).Count.ShouldBe(0));
+            Yaml.Parses(empty).WithValue(doc =>
+            {
+                doc.Directives.ShouldBeEmpty();
+                doc.Body.ShouldBeOfType<YMapping>().ShouldBeEmpty();
+            });
 
             var filled = "{\"zero\" \n : \n 0, \"one\" \n \n\n: 1, \"two\" \n\n : 2}";
 
-            Yaml.Parses(Tokenize(filled)).WithValue(value =>
+            Yaml.Parses(Tokenize(filled)).WithValue(doc =>
             {
-                var dictionary = (YMapping) value;
+                doc.Directives.ShouldBeEmpty();
 
-                dictionary["zero"].ShouldBe(new YNumber(0m));
-                dictionary["one"].ShouldBe(new YNumber(1m));
-                dictionary["two"].ShouldBe(new YNumber(2m));
+                var mapping = doc.Body.ShouldBeOfType<YMapping>();
+
+                mapping["zero"].ShouldBe(new YNumber(0m));
+                mapping["one"].ShouldBe(new YNumber(1m));
+                mapping["two"].ShouldBe(new YNumber(2m));
             });
         }
 
         [Fact]
         public void ParsesBlockSequenceL11L11L11()
         {
-            YamlTestCases.BlockSequenceL11L11L11.TestParser();
+            DocumentTestCases.BlockSequenceL11L11L11.TestParser();
+        }
+
+        [Fact]
+        public void ParsesUnquotedString()
+        {
+            DocumentTestCases.UnquotedString.TestParser();
         }
 
         [Fact]
         public void ParsesSpaceInterspercedFlowMapping()
         {
-            YamlTestCases.SpaceInterspercedFlowMapping.TestParser();
+            DocumentTestCases.SpaceInterspercedFlowMapping.TestParser();
         }
 
         [Fact]
         public void ParsesHadlesSpaceInterspercedFlowSequencOfFlowMappings()
         {
-            YamlTestCases.SpaceInterspercedFlowSequencOfFlowMappings.TestParser();
+            DocumentTestCases.SpaceInterspercedFlowSequencOfFlowMappings.TestParser();
         }
 
         [Fact]
         public void ParsesComplexFlow()
         {
-            YamlTestCases.ComplexFlow.TestParser();
+            DocumentTestCases.ComplexFlow.TestParser();
         }
 
         [Fact]
         public void ParsesBlockSequenceL12L21()
         {
-            YamlTestCases.BlockSequenceL12L21.TestLexer();
+            DocumentTestCases.BlockSequenceL12L21.TestLexer();
         }
 
         [Fact]
         public void ParsesBlockMappingSequenceL11()
         {
-            YamlTestCases.BlockMappingSequenceL11.TestParser();
+            DocumentTestCases.BlockMappingSequenceL11.TestParser();
         }
 
         [Fact]
         public void ParsesBlockLiteralScalarKeep()
         {
-            YamlTestCases.BlockLiteralScalarKeep.TestParser();
+            DocumentTestCases.BlockLiteralScalarKeep.TestParser();
         }
 
         [Fact]
         public void ParsesBlockLiteralScalarClip()
         {
-            YamlTestCases.BlockLiteralScalarClip.TestParser();
+            DocumentTestCases.BlockLiteralScalarClip.TestParser();
         }
 
         [Fact]
         public void ParsesBlockLiteralScalarStrip()
         {
-            YamlTestCases.BlockLiteralScalarStrip.TestParser();
+            DocumentTestCases.BlockLiteralScalarStrip.TestParser();
         }
 
         [Fact]
         public void ParsesBlockFoldedScalarKeep()
         {
-            YamlTestCases.BlockFoldedScalarKeep.TestParser();
+            DocumentTestCases.BlockFoldedScalarKeep.TestParser();
         }
 
         [Fact]
         public void ParsesBlockFoldedScalarClip()
         {
-            YamlTestCases.BlockFoldedScalarClip.TestParser();
+            DocumentTestCases.BlockFoldedScalarClip.TestParser();
         }
 
         [Fact]
         public void ParsesBlockFoldedScalarStrip()
         {
-            YamlTestCases.BlockFoldedScalarStrip.TestParser();
+            DocumentTestCases.BlockFoldedScalarStrip.TestParser();
         }
 
         [Fact]
         public void ParsesBlockMappingInline()
         {
-            YamlTestCases.BlockMappingInline.TestParser();
+            DocumentTestCases.BlockMappingInline.TestParser();
         }
 
         [Fact]
         public void ParsesBlockMappingInlineAnchored()
         {
-            YamlTestCases.BlockMappingInlineAnchored.TestParser();
+            DocumentTestCases.BlockMappingInlineAnchored.TestParser();
         }
 
         [Fact]
         public void ParsesBlockMappingInlineAnchoredWithAlias()
         {
-            YamlTestCases.BlockMappingInlineAnchoredWithAlias.TestParser();
+            DocumentTestCases.BlockMappingInlineAnchoredWithAlias.TestParser();
+        }
+
+        [Fact]
+        public void ParsesDirectivesDocument()
+        {
+            DocumentTestCases.DirectivesDocument.TestParser();
+        }
+
+        [Fact]
+        public void ParsesDirectivesDocumentNoEndMarker()
+        {
+            DocumentTestCases.DirectivesDocumentNoEndMarker.TestParser();
+        }
+
+        [Fact]
+        public void ParsesExplicitDocument()
+        {
+            DocumentTestCases.ExplicitDocument.TestParser();
+        }
+
+        [Fact]
+        public void ParsesExplicitDocumentNoEndMarker()
+        {
+            DocumentTestCases.ExplicitDocumentNoEndMarker.TestParser();
+        }
+
+        [Fact]
+        public void ParsesBareDocumentWithEndMarker()
+        {
+            DocumentTestCases.BareDocumentWithEndMarker.TestParser();
         }
     }
 }

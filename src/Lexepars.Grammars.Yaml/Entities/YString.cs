@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml.Entities
+namespace Lexepars.Grammars.Yaml.Entities
 {
     public class YString : YScalar
     {

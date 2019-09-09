@@ -1,17 +1,16 @@
 ﻿using Lexepars.OffsideRule;
 using System.Collections.Generic;
 using System.Globalization;
-
+using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml
+namespace Lexepars.Grammars.Yaml
 {
-    public enum BlockScalarState
+    public enum DocumentState
     {
-        None,
-        AwaitingFirstLine,
-        AwaitingFirstLineToSetIndent,
-        Within,
+        DirectivePreamble,
+        Body,
+        End
     }
 
     public class YamlTokenizationContext : OffsideRuleTokenizationContext
@@ -20,12 +19,16 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
         public int IndentationLimit { get; private set; }
 
+        public static ResetDocumentIndent ResetDocumentIndent { get; } = new ResetDocumentIndent();
+
         public YamlTokenizationContext(LinedInputText text, IEnumerable<FlowExtent> flowExtents)
             : base(text, flowExtents)
         {
         }
 
-        protected bool LastIndentWasNotNewLine { get; set; }
+        public DocumentState DocumentState { get; private set; }
+
+        protected bool LastIndentWasNotNewLine { get; private set; }
 
         public override void OnLineTokenizingBegin()
         {
@@ -37,10 +40,12 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         {
             base.OnProcessIndent(indent, token);
 
+            DocumentState = indent == ResetDocumentIndent ? DocumentState.End : DocumentState.Body;
+
             LastIndentWasNotNewLine = token.Kind != YamlLexer.NewLine;
         }
 
-        public override bool NoMoreIndents()
+        public override bool StopIndentLexing()
         {
            if (BlockScalarState == BlockScalarState.None)
                 return false;
@@ -68,12 +73,52 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
             }
         }
 
+        public override IEnumerable<ScopeState> BalanceScope()
+        {
+            switch (DocumentState)
+            {
+                case DocumentState.DirectivePreamble:
+                    return Enumerable.Empty<ScopeState>();
+                case DocumentState.End:
+                    DocumentState = DocumentState.DirectivePreamble;
+                    return Enumerable.Repeat(ScopeState.End, ResetIndentation());
+            }
+            return base.BalanceScope();
+        }
+
+        public override Flow.State OnProcessTheFlow(TokenKind tokenKind)
+        {
+            var flowState = base.OnProcessTheFlow(tokenKind);
+
+            if (flowState != Flow.State.NoExtent)
+                DocumentState = DocumentState.Body;
+
+            return flowState;
+        }
+
         protected Regex BlockScalarExplicitIndentRegex { get; } = new Regex(@"\d+");
 
         public override void OnProcessToken(Token token)
         {
             if (token == null)
                 return;
+
+            switch (token.Kind)
+            {
+                case var t when
+                    t == YamlLexer.TagDirective ||
+                    t == YamlLexer.VersionDirective ||
+                    t == YamlLexer.Comment ||
+                    t == YamlLexer.NewLine ||
+                    t == YamlLexer.DirectivesEndMarker:
+                    break;
+                case var m when m == YamlLexer.DocumentEndMarker:
+                    DocumentState = DocumentState.End;
+                    break;
+                default:
+                    DocumentState = DocumentState.Body;
+                    break;
+            }
 
             if (token.Kind != YamlLexer.BlockScalarHeader)
                 return;

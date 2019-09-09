@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml.Entities
+namespace Lexepars.Grammars.Yaml.Entities
 {
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "By design.")]
     public class YSequence : YNode, IReadOnlyList<YNode>

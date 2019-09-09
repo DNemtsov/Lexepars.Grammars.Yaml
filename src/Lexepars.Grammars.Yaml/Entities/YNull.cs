@@ -1,4 +1,4 @@
-﻿namespace Lexepars.Tests.IntegrationTests.Yaml.Entities
+﻿namespace Lexepars.Grammars.Yaml.Entities
 {
     public class YNull : YScalar
     {

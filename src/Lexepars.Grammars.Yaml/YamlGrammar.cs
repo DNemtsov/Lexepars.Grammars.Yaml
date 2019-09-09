@@ -1,11 +1,10 @@
-﻿using Lexepars.OffsideRule;
-using Lexepars.Tests.IntegrationTests.Yaml.Entities;
+﻿using Lexepars.Grammars.Yaml.Entities;
+using Lexepars.OffsideRule;
 
-namespace Lexepars.Tests.IntegrationTests.Yaml
+namespace Lexepars.Grammars.Yaml
 {
-    public class YamlGrammar : Grammar<YNode>
+    public class DocumentGrammar : Grammar<YDocument>
     {
-
         static readonly GrammarRule<YBoolean> Boolean = new GrammarRule<YBoolean>();
         static readonly GrammarRule<YNull> Null = new GrammarRule<YNull>();
         static readonly GrammarRule<YNumber> Number = new GrammarRule<YNumber>();
@@ -29,9 +28,21 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
         static readonly GrammarRule<YNode> Node = new GrammarRule<YNode>();
 
-        static readonly GrammarRule<YNode> Yaml = new GrammarRule<YNode>();
+        static readonly GrammarRule<YVersionDirective> YamlVersionDirective = new GrammarRule<YVersionDirective>();
 
-        static YamlGrammar()
+        static readonly GrammarRule<YTagDirective> TagDirective = new GrammarRule<YTagDirective>();
+
+        static readonly GrammarRule<YDirective> Directive = new GrammarRule<YDirective>();
+
+        static readonly GrammarRule<YDocument> BareDocument = new GrammarRule<YDocument>();
+
+        static readonly GrammarRule<YDocument> ExplicitDocument = new GrammarRule<YDocument>();
+
+        static readonly GrammarRule<YDocument> DirectivesDocument = new GrammarRule<YDocument>();
+
+        static readonly GrammarRule<YDocument> Document = new GrammarRule<YDocument>();
+
+        static DocumentGrammar()
         {
             Boolean.Rule = Choice(
                 YamlLexer.True.Constant(YBoolean.True),
@@ -86,7 +97,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 from anchor in Optional(YamlLexer.Anchor.Lexeme())
                 from node in Choice<YNode>(
                     FlowSequence,
-                    FlowMapping,
+                    Attempt(FlowMapping), // enclosed into attempt lest it consumes QuotedString, UnquotedString
                     QuotedString,
                     Number,
                     Boolean,
@@ -99,7 +110,7 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
                 from anchor in Optional(YamlLexer.Anchor.Lexeme())
                 from node in Choice<YNode>(
                     BlockSequence,
-                    BlockMapping,
+                    Attempt(BlockMapping), // enclosed into attempt lest it consumes QuotedString, UnquotedString
                     QuotedString,
                     Number,
                     Boolean,
@@ -111,11 +122,28 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
 
             Node.Rule = Choice(FlowNode, BlockNode);
 
-            Yaml.Rule = OccupiesEntireInput(Node);
+            TagDirective.Rule = YamlLexer.TagDirective.BindLexeme(YTagDirective.FromLexeme);
+
+            YamlVersionDirective.Rule = YamlLexer.VersionDirective.BindLexeme(YVersionDirective.FromLexeme);
+
+            Directive.Rule = Choice<YDirective>(TagDirective, YamlVersionDirective);
+
+            BareDocument.Rule = Node.Bind(YDocument.FromBareNode);
+
+            ExplicitDocument.Rule = YamlLexer.DirectivesEndMarker.Kind().Take(Optional(Node)).Bind(YDocument.FromBareNode);
+
+            DirectivesDocument.Rule =
+                from directives in OneOrMore(Directive)
+                from body in YamlLexer.DirectivesEndMarker.Kind().Take(Node)
+                select YDocument.Create(directives, body);
+
+            Document.Rule =
+                OccupiesEntireInput(Choice(DirectivesDocument, ExplicitDocument, BareDocument).ThenSkip(Optional(YamlLexer.DocumentEndMarker.Lexeme())));
         }
 
-        public YamlGrammar()
-            : base("YAML", Yaml)
-        { }
+        public DocumentGrammar()
+            : base("YAML", Document)
+        {
+        }
     }
 }

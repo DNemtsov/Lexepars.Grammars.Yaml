@@ -1,4 +1,4 @@
-namespace Lexepars.Tests.IntegrationTests.Yaml
+namespace Lexepars.Grammars.Yaml
 {
     using Xunit;
 
@@ -7,124 +7,154 @@ namespace Lexepars.Tests.IntegrationTests.Yaml
         [Fact]
         public void LexesEmptyFlowMapping()
         {
-            YamlTestCases.EmptyFlowMapping.TestLexer();
+            DocumentTestCases.EmptyFlowMapping.TestLexer();
         }
 
         [Fact]
         public void LexesEmptyFlowSequence()
         {
-            YamlTestCases.EmptyFlowSequence.TestLexer();
+            DocumentTestCases.EmptyFlowSequence.TestLexer();
         }
 
         [Fact]
         public void LexesNumbers()
         {
-            foreach (var testCase in YamlTestCases.NumberTests)
+            foreach (var testCase in DocumentTestCases.NumberTests)
                 testCase.TestLexer();
         }
 
         [Fact]
         public void LexesUnquotedStings()
         {
-            foreach (var testCase in YamlTestCases.UnquotedStringTests)
+            foreach (var testCase in DocumentTestCases.UnquotedStringTests)
                 testCase.TestLexer();
         }
 
         [Fact]
         public void LexesSpaceInterspercedFlowMapping()
         {
-            YamlTestCases.SpaceInterspercedFlowMapping.TestLexer();
+            DocumentTestCases.SpaceInterspercedFlowMapping.TestLexer();
         }
 
         [Fact]
         public void LexesSpaceInterspercedFlowSequencOfFlowMappings()
         {
-            YamlTestCases.SpaceInterspercedFlowSequencOfFlowMappings.TestLexer();
+            DocumentTestCases.SpaceInterspercedFlowSequencOfFlowMappings.TestLexer();
         }
 
         [Fact]
         public void LexesComplexFlow()
         {
-            YamlTestCases.ComplexFlow.TestLexer();
+            DocumentTestCases.ComplexFlow.TestLexer();
         }
 
         [Fact]
         public void LexesBlockSequenceL11L11L11()
         {
-            YamlTestCases.BlockSequenceL11L11L11.TestLexer();
+            DocumentTestCases.BlockSequenceL11L11L11.TestLexer();
         }
 
         [Fact]
         public void LexesBlockSequenceL12L21()
         {
-            YamlTestCases.BlockSequenceL12L21.TestLexer();
+            DocumentTestCases.BlockSequenceL12L21.TestLexer();
         }
 
         [Fact]
         public void LexesBlockMappingSequenceL11()
         {
-            YamlTestCases.BlockMappingSequenceL11.TestLexer();
+            DocumentTestCases.BlockMappingSequenceL11.TestLexer();
         }
 
         [Fact]
         public void LexesBlockScalarHeader()
         {
-            foreach (var testCase in YamlTestCases.BlockScalarHeaderTests)
+            foreach (var testCase in DocumentTestCases.BlockScalarHeaderTests)
                 testCase.TestLexer();
         }
 
         [Fact]
         public void LexesBlockLiteralScalarKeep()
         {
-            YamlTestCases.BlockLiteralScalarKeep.TestLexer();
+            DocumentTestCases.BlockLiteralScalarKeep.TestLexer();
         }
 
         [Fact]
         public void LexesBlockLiteralScalarClip()
         {
-            YamlTestCases.BlockLiteralScalarClip.TestLexer();
+            DocumentTestCases.BlockLiteralScalarClip.TestLexer();
         }
 
         [Fact]
         public void LexesBlockLiteralScalarStrip()
         {
-            YamlTestCases.BlockLiteralScalarStrip.TestLexer();
+            DocumentTestCases.BlockLiteralScalarStrip.TestLexer();
         }
 
         [Fact]
         public void LexesBlockFoldedScalarKeep()
         {
-            YamlTestCases.BlockFoldedScalarKeep.TestLexer();
+            DocumentTestCases.BlockFoldedScalarKeep.TestLexer();
         }
 
         [Fact]
         public void LexesBlockFoldedScalarClip()
         {
-            YamlTestCases.BlockFoldedScalarClip.TestLexer();
+            DocumentTestCases.BlockFoldedScalarClip.TestLexer();
         }
 
         [Fact]
         public void LexesBlockFoldedScalarStrip()
         {
-            YamlTestCases.BlockFoldedScalarStrip.TestLexer();
+            DocumentTestCases.BlockFoldedScalarStrip.TestLexer();
         }
 
         [Fact]
         public void LexesBlockMappingInline()
         {
-            YamlTestCases.BlockMappingInline.TestLexer();
+            DocumentTestCases.BlockMappingInline.TestLexer();
         }
 
         [Fact]
         public void LexesBlockMappingInlineAnchored()
         {
-            YamlTestCases.BlockMappingInlineAnchored.TestLexer();
+            DocumentTestCases.BlockMappingInlineAnchored.TestLexer();
         }
 
         [Fact]
         public void LexesBlockMappingInlineAnchoredWithAlias()
         {
-            YamlTestCases.BlockMappingInlineAnchoredWithAlias.TestLexer();
+            DocumentTestCases.BlockMappingInlineAnchoredWithAlias.TestLexer();
+        }
+
+        [Fact]
+        public void LexesDirectivesDocument()
+        {
+            DocumentTestCases.DirectivesDocument.TestLexer();
+        }
+
+        [Fact]
+        public void LexesDirectivesDocumentNoEndMarker()
+        {
+            DocumentTestCases.DirectivesDocumentNoEndMarker.TestLexer();
+        }
+
+        [Fact]
+        public void LexesExplicitDocument()
+        {
+            DocumentTestCases.ExplicitDocument.TestLexer();
+        }
+
+        [Fact]
+        public void LexesExplicitDocumentNoEndMarker()
+        {
+            DocumentTestCases.ExplicitDocumentNoEndMarker.TestLexer();
+        }
+
+        [Fact]
+        public void LexesBareDocumentWithEndMarker()
+        {
+            DocumentTestCases.BareDocumentWithEndMarker.TestLexer();
         }
     }
 }
