@@ -1,9 +1,9 @@
-﻿using Lexepars.Grammars.Yaml.Entities;
-using Lexepars.OffsideRule;
-using Shouldly;
-
-namespace Lexepars.Grammars.Yaml
+﻿namespace Lexepars.Grammars.Yaml
 {
+    using Lexepars.Grammars.Yaml.Entities;
+    using Lexepars.OffsideRule;
+    using Shouldly;
+
     static class DocumentTestCases
     {
         public static DocumentTestCase EmptyFlowMapping = new DocumentTestCase(
